@@ -1,39 +1,33 @@
-var w = 1300;
-var h = window.screen.height;
+var screenWidth = 1300;
+var screenHeight = window.screen.height;
 var svg;
-var circleLabels;
+var shoWRegionNames = false;
+var dataPointsApi;
 
-var towns = document.querySelector(".range").value;
+// Range Slider
+const rangeInput = document.querySelector(".range-wrap .range");
+let rangeValue = document.querySelector(".range-wrap .value div");
 
-const allRanges = document.querySelectorAll(".range-wrap");
-allRanges.forEach(wrap => {
-    const range = wrap.querySelector(".range");
-    const bubble = wrap.querySelector(".bubble");
+let start = parseFloat(rangeInput.min);
+let end = parseFloat(rangeInput.max);
+let step = parseFloat(rangeInput.step);
 
-    range.addEventListener("input", () => {
-        setBubble(range, bubble);
-    });
-    setBubble(range, bubble);
+for (let i = start; i <= end; i += step) {
+    rangeValue.innerHTML += '<div>' + i + '</div>';
+}
+rangeInput.addEventListener("input", function () {
+    let top = parseFloat(rangeInput.value) / step * -40;
+    rangeValue.style.marginTop = top + "px";
 });
 
-function setBubble(range, bubble) {
-    const val = range.value;
-    const min = range.min;
-    const max = range.max;
-    const newVal = Number(((val - min) * 100) / (max - min));
-    bubble.innerHTML = val;
-
-    bubble.style.left = `calc(${newVal}% + (${8 - newVal * 0.15}px))`;
-}
-
 // Creating Projection of Map with customizations
-var projection = d3.geoAlbers().center([1.5, 55.2]).rotate([4.4, 0]).parallels([50, 50]).scale(5000).translate([w / 2, h / 2]);
+var projection = d3.geoAlbers().center([1.5, 55.2]).rotate([4.4, 0]).parallels([50, 50]).scale(5000).translate([screenWidth / 2, screenHeight / 2]);
 var path = d3.geoPath().projection(projection);
 
 // load data on Page Load
 function loadData(towns) {
     var countryData = d3.json("./ukcounties.geojson");
-    console.log(towns);
+    // console.log(towns);
     var regionPoint = d3.json("http://35.233.33.123/Circles/Towns/" + towns);
     Promise.all([countryData, regionPoint]).then(function (data, error) {
         if (data) {
@@ -52,13 +46,17 @@ function loadRegionNewData() {
     this.towns = document.querySelector(".range").value;
     this.loadData(towns);
 }
-
+// Showing Region Names on Map
+function showRegionNames() {
+    this.shoWRegionNames = true;
+    showCirclesData(this.dataPointsApi, true);
+}
 // Creating SVG of Map
 function createSvg() {
     svg = d3.select("div#content").append("svg").style("background-color", "#c9e8fd")
-        .attr("viewBox", "0 0 " + w + " " + h)
+        .attr("viewBox", "0 0 " + screenWidth + " " + screenHeight)
         .classed("svg-content", true)
-    
+
     svg
         .transition()
         .duration(700)
@@ -69,6 +67,7 @@ function createSvg() {
 
 // Drawing Circles on Map
 function drawCircles(mapData, dataPoints) {
+    this.dataPointsApi = dataPoints
     svg.selectAll("path")
         .data(mapData.features)
         .enter().append("path")
@@ -77,6 +76,10 @@ function drawCircles(mapData, dataPoints) {
         .append("title")
         .text((d) => d.properties.name)
 
+    showCirclesData(dataPoints, false)
+}
+
+function showCirclesData(dataPoints, showNames) {
     // Points on map
     if (document.contains(document.getElementById("tooltip1"))) {
         document.getElementById("tooltip1").remove();
@@ -86,47 +89,79 @@ function drawCircles(mapData, dataPoints) {
         .attr("class", "tooltip")
         .attr("id", "tooltip1")
         .style("opacity", 1)
-        .style("background-color", "white")
+        .style("background-color", "paleturquoise")
         .style("border", "solid")
         .style("border-width", "2px")
         .style("border-radius", "5px")
         .style("padding", "5px")
+        .style("box-shadow", "rgb(0 0 0 / 25%) 0px 20px 40px -14px")
 
     // Showing Region Details of Hover
     const mouseover = function (event, d) {
-        Tooltip.style("opacity", 1)
+        Tooltip
+            .style("opacity", 1)
+            .style("transition", "all .5s ease")
+
     }
     var mousemove = function (event, d) {
         Tooltip
-            .html(d.County + "<br>" + "Population: " + d.Population +"<br>" + "Longitude: " + d.lng + "<br>" + "Latitude: " + d.lat)
+            .html("<b>" + d.County + "<b>" + "<br>" + "Population: " + d.Population + "<br>" + "Longitude: " + d.lng + "<br>" + "Latitude: " + d.lat)
             .style("left", (event.x) / 2 + "px")
             .style("top", (event.y) / 2 - 30 + "px")
     }
-    var mouseleave = function (event, d) {
-        Tooltip.style("opacity", 0)
-    }
+    // var mouseleave = function (event, d) {
+    //     Tooltip.style("opacity", 0)
+    // }
     let g = svg.append("g");
-
-    g.selectAll("circle")
-        .data(dataPoints)
-        .enter()
-        .append("circle")
-        .on("mouseover", mouseover)
-        .on("mousemove", mousemove)
-        .on("mouseleave", mouseleave)
-        .transition()
-        .duration(3000)
-        .attr("cx", function (d) {
-            this.circleLabels = d;
-            console.log(this.circleLabels);
-            return projection([d.lng, d.lat])[0] + 5;
-        })
-        .attr("cy", function (d) {
-            return projection([d.lng, d.lat])[1] + 15;
-        })
-        .attr("r", (d) => {
-            return (d.Population / 10500)
-        })
+    if (!showNames) {
+        g.selectAll("circle")
+            .data(dataPoints)
+            .enter()
+            .append("circle")
+            .on("mouseover", mouseover)
+            .on("mousemove", mousemove)
+            // .on("mouseleave", mouseleave)
+            .transition()
+            .duration(1000)
+            .attr("cx", function (d) {
+                return projection([d.lng, d.lat])[0] + 5;
+            })
+            .attr("cy", function (d) {
+                return projection([d.lng, d.lat])[1] + 15;
+            })
+            .attr("r", (d) => {
+                return (d.Population / 10500)
+            })
+    } else {
+        g.selectAll("circle")
+            .data(dataPoints)
+            .enter()
+            .append("circle")
+            .attr("cx", function (d) {
+                return projection([d.lng, d.lat])[0] + 5;
+            })
+            .attr("cy", function (d) {
+                return projection([d.lng, d.lat])[1] + 15;
+            })
+            .attr("r", (d) => {
+                return (d.Population / 10500)
+            })
+        g.selectAll("text")
+            .data(dataPoints)
+            .enter()
+            .append("text")
+            .on("mouseover", mouseover)
+            .on("mousemove", mousemove)
+            .transition()
+            .duration(1000)
+            .text(function (d) {
+                return d.County;
+            })
+            .attr("x", function (d) { return projection([d.lng, d.lat])[0] + 5; })
+            .attr("y", function (d) { return projection([d.lng, d.lat])[1] + 15; })
+            .attr("class", "labels")
+            
+    }
 }
 
 function drawData(mapData, dataPoints) {
