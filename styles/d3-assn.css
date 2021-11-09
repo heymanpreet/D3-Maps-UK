@@ -63,9 +63,10 @@ h1 {
     padding: 10px;
     margin: 10px;
 }
-.card_content {
-    padding: 1rem;
-    background: linear-gradient(to bottom left, #EF8D9C 40%, #FFC39E 100%);
+.card-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 .left-content {
     /* width: 25%; */
