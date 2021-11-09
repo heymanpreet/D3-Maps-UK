@@ -1,0 +1,42 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>D3 Assignment - Manpreet Chawla</title>
+	<h1>D3 UK Map Visualization</h1>
+	<div class="main card" id="main-content">
+		<div class="left-content">
+			<div class="card" style="justify-content: center;">
+				<div class="card-content">
+					<h2 class="card_title">Select Number of Regions</h2>
+					<div class="range-wrap">
+						<input type="range" class="range" min="0" max="500">
+						<output class="bubble"></output>
+					</div>
+					<button class="btn card_btn" onclick="loadRegionNewData()">Load Regions</button>
+				</div>
+			</div>
+			<div class="card" style="justify-content: center;">
+				<div class="card-content">
+					<h2 class="card_title">Region Details</h2>
+					<div class="info">Hover over a country</div>
+				</div>
+			</div>
+		</div>
+		<div id="content" class="right-content card">
+			<!-- <svg width="1400" height="700" class="tip">
+				<g class="map"></g>
+			</svg> -->
+		</div>
+	</div>
+
+	<script type ="text/javascript" src = "https://d3js.org/d3.v6.min.js"></script> 
+	<script type="text/javascript" src="scripts/d3-assn.js"></script>
+	<link rel="stylesheet" href="styles/d3-assn.css">
+
+</head>
+
+<body>
+</body>
+
+</html>
